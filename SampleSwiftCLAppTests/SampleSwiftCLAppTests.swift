@@ -1,6 +1,6 @@
 //
-//  SwiftCLTests.swift
-//  SwiftCLTests
+//  SampleSwiftCLAppTests.swift
+//  SampleSwiftCLAppTests
 //
 //  Created by Lukasz Kwoska on 05/12/14.
 //  Copyright (c) 2014 Spinal Development. All rights reserved.
@@ -8,10 +8,8 @@
 
 import Cocoa
 import XCTest
-import SwiftCL
-import OpenCL
 
-class SwiftCLTests: XCTestCase {
+class SampleSwiftCLAppTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
@@ -23,20 +21,11 @@ class SwiftCLTests: XCTestCase {
         super.tearDown()
     }
     
-    func testContextCreate() {
-      if let context = Context(fromType: CL_DEVICE_TYPE_CPU) {
-        if let referenceCount: cl_uint = context.getInfo(CL_CONTEXT_REFERENCE_COUNT) {
-          XCTAssertEqual(referenceCount, cl_uint(1), "Wrong refence count")
-        }
-        else {
-          XCTFail("Failed to get reference count")
-        }
-      }
-      else {
-        XCTFail("Failed to create context")
-      }
-  }
-
+    func testExample() {
+        // This is an example of a functional test case.
+        XCTAssert(true, "Pass")
+    }
+    
     func testPerformanceExample() {
         // This is an example of a performance test case.
         self.measureBlock() {
