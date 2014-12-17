@@ -91,6 +91,171 @@ public class Kernel {
     
     return Prepared(id:id)
   }
+  
+  public func setArgs<A, B, C, D, E>(a:A, _ b:B, _ c:C, _ d:D, _ e:E,
+    errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
+      if !setArg(cl_uint(0), a, errorHandler) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(1), b, errorHandler) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(2), c) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(3), d) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(4), e) {
+        return nil
+      }
+      
+      return Prepared(id:id)
+  }
+  
+  public func setArgs<A, B, C, D, E, F>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F,
+    errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
+      if !setArg(cl_uint(0), a, errorHandler) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(1), b, errorHandler) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(2), c) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(3), d) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(4), e) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(5), f) {
+        return nil
+      }
+      
+      return Prepared(id:id)
+  }
+
+  public func setArgs<A, B, C, D, E, F, G>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F, _ g:G,
+    errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
+      if !setArg(cl_uint(0), a, errorHandler) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(1), b, errorHandler) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(2), c) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(3), d) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(4), e) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(5), f) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(6), g) {
+        return nil
+      }
+      
+      return Prepared(id:id)
+  }
+  
+  public func setArgs<A, B, C, D, E, F, G, H>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F, _ g:G, _ h:H,
+    errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
+      if !setArg(cl_uint(0), a, errorHandler) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(1), b, errorHandler) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(2), c) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(3), d) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(4), e) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(5), f) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(6), g) {
+        return nil
+      }
+      
+      if !setArg(cl_uint(7), h) {
+        return nil
+      }
+
+      return Prepared(id:id)
+  }
+  
+  public func setArgs<A, B, C, D, E, F, G, H, I>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F, _ g:G, _ h:H, i: I,
+    errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
+    if !setArg(cl_uint(0), a, errorHandler) {
+      return nil
+    }
+    
+    if !setArg(cl_uint(1), b, errorHandler) {
+      return nil
+    }
+    
+    if !setArg(cl_uint(2), c) {
+      return nil
+    }
+    
+    if !setArg(cl_uint(3), d) {
+      return nil
+    }
+    
+    if !setArg(cl_uint(4), e) {
+      return nil
+    }
+    
+    if !setArg(cl_uint(5), f) {
+      return nil
+    }
+    
+    if !setArg(cl_uint(6), g) {
+      return nil
+    }
+    
+    if !setArg(cl_uint(7), h) {
+      return nil
+    }
+    
+    if !setArg(cl_uint(8), i) {
+      return nil
+    }
+    
+    return Prepared(id:id)
+  }
 
   
   private func setArg<T>(idx: cl_uint, _ arg:T, errorHandler:((cl_int) -> Void)? = nil) -> Bool {
