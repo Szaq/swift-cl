@@ -19,6 +19,25 @@ func unzip<T, U>(sequence: SequenceOf<(T, U)>) -> ([T], [U]) {
   return (t, u)
 }
 
+/**
+Convert an array to a dictionary using tranformer.
+
+:param: array     Array to convert
+:param: transform Transformer function
+
+:returns: Dictionary representation of the array.
+*/
+public func toDictionary<K, V, E> (array:[E], transform:(E) -> (K, V)?) -> [K: V] {
+  var dict = [K: V]()
+  
+  for entry in array {
+    if let (key, value) = transform(entry) {
+      dict[key] = value
+    }
+  }
+  return dict
+}
+
 func withResolvedPointers<A,B,C,R>(a:[A]?, b:[B]?, c:[C]?, handler:(UnsafePointer<A>, UnsafePointer<B>, UnsafePointer<C>) -> R) -> R {
   switch (a,b,c) {
   case (.None, .None, .None):
