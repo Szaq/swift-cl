@@ -12,11 +12,10 @@ import SwiftCL
 class PlatformTests: XCTestCase {
 
   func testListPlatformIDs() {
-    XCTAssertGreaterThan(try listPlatformIDs().count, 0)
+    XCTAssertGreaterThan(try Platform.listIDs().count, 0)
   }
   
   func testListPlatforms() {
-    XCTAssertGreaterThan(try listPlatforms().count, 0)
+    XCTAssertGreaterThan(try Platform.list().count, 0)
   }
-
 }
