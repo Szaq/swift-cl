@@ -78,8 +78,11 @@ indirect enum CLError: ErrorType {
   case OutOfHostMemory
   ///platform is not a valid platform
   case InvalidPlatform
-  ///Couldn't find specified file
+  ///Failed to build program
   case BuildError(reason: CLError, buildInfo: Program.BuildInfo?)
+  /// Kernel argument was not descendant of Memory
+  case KernelArgumentNotMemory
+  ///Couldn't find specified file
   case FileNotFound
   ///There was a problem converting UTF8 raw data
   case UTF8ConversionError

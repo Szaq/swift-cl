@@ -22,7 +22,7 @@ class Simulation {
       guard let context = Context(fromType: CL_DEVICE_TYPE_GPU),
         queue = CommandQueue(context: context),
         program = try? Program(context: context, loadFromMainBundle: "Simulation.cl"),
-        kernel = Kernel(program: program, name: "simulationStep"),
+        kernel = try? Kernel(program: program, name: "simulationStep"),
         bufferA = Buffer<Float>(context: context, copyFrom: [0.0, 0.0, 1.0, 1.0], readOnly: true),
         bufferB = Buffer<Float>(context: context, copyFrom: [4, 5, 6, 7])
         else {return nil}
@@ -34,7 +34,7 @@ class Simulation {
     }
     
     func step() -> [Float] {
-      if let preparedKernel = kernel.setArgs(bufferA, bufferB, bufferB) {
+      if let preparedKernel = try? kernel.setArgs(bufferA, bufferB, bufferB) {
         queue.enqueue(preparedKernel, globalWorkSize: [4])
         queue.enqueueRead(bufferB)
       }
