@@ -9,7 +9,7 @@
 import Foundation
 import OpenCL
 
-public struct Device : Printable {
+public struct Device : CustomStringConvertible {
   
   public struct Vendor {
     let ID: cl_uint
@@ -112,7 +112,7 @@ public func getDeviceInfo<T:IntegerLiteralConvertible>(
   errorHandler:((cl_device_id,Int32,cl_int)->Void)? = nil) -> T? {
     
     var value: T = 0
-    let result = clGetDeviceInfo(deviceID, cl_device_info(param), UInt(sizeof(T)), &value, nil)
+    let result = clGetDeviceInfo(deviceID, cl_device_info(param), sizeof(T), &value, nil)
     if result != CL_SUCCESS {
       if let handler = errorHandler {
         handler(deviceID, param, result)
@@ -128,7 +128,7 @@ public func getDeviceInfo<T:NilLiteralConvertible>(
   errorHandler:((cl_device_id,Int32,cl_int)->Void)? = nil) -> T? {
     
     var value: T = nil
-    let result = clGetDeviceInfo(deviceID, cl_device_info(param), UInt(sizeof(T)), &value, nil)
+    let result = clGetDeviceInfo(deviceID, cl_device_info(param), sizeof(T), &value, nil)
     if result != CL_SUCCESS {
       if let handler = errorHandler {
         handler(deviceID, param, result)
@@ -143,8 +143,8 @@ public func getDeviceInfo(
   param: Int32,
   errorHandler:((cl_device_id,Int32,cl_int)->Void)? = nil) -> String? {
     
-    var length: UInt = 0
-    let result = clGetDeviceInfo(deviceID, cl_device_info(param), UInt(sizeof(UInt)), nil, &length)
+    var length: Int = 0
+    let result = clGetDeviceInfo(deviceID, cl_device_info(param), sizeof(Int), nil, &length)
     if result != CL_SUCCESS {
       if let handler = errorHandler {
         handler(deviceID, param, result)
@@ -161,7 +161,7 @@ public func getDeviceInfo(
       return nil
     }
     
-    return NSString(UTF8String: value)
+    return NSString(UTF8String: value) as? String
 }
 
 
@@ -171,7 +171,8 @@ public func getDeviceInfo<T:IntegerLiteralConvertible> (
   count: Int,
   errorHandler:((cl_device_id,Int32,cl_int)->Void)? = nil) -> [T]? {
     var value = [T](count:count, repeatedValue:0)
-    let result = clGetDeviceInfo(deviceID, cl_device_info(param), UInt(sizeof(T) * count), &value, nil)
+    let result = clGetDeviceInfo(deviceID, cl_device_info(param), sizeof(T) * count
+        , &value, nil)
     if result != CL_SUCCESS {
       if let handler = errorHandler {
         handler(deviceID, param, result)
@@ -198,113 +199,114 @@ public func listDeviceIDs(platformID: cl_platform_id, deviceType:cl_device_type)
 
 public func getDeviceInfo(ID:cl_device_id, errorHandler:((cl_device_id,Int32,cl_int)->Void)? = nil) -> Device? {
   let vendor = Device.Vendor(
-    ID: getDeviceInfo(ID, CL_DEVICE_VENDOR_ID, errorHandler: errorHandler) ?? 0,
-    name: getDeviceInfo(ID, CL_DEVICE_VENDOR, errorHandler: errorHandler) ?? ""
+    ID: getDeviceInfo(ID, param: CL_DEVICE_VENDOR_ID, errorHandler: errorHandler) ?? 0,
+    name: getDeviceInfo(ID, param: CL_DEVICE_VENDOR, errorHandler: errorHandler) ?? ""
   )
   
   let fpConfig = Device.FPConfig(
-    halfPrecision: getDeviceInfo(ID, CL_DEVICE_HALF_FP_CONFIG, errorHandler: errorHandler) ?? 0,
-    singlePrecision: getDeviceInfo(ID, CL_DEVICE_SINGLE_FP_CONFIG, errorHandler: errorHandler) ?? 0,
-    doublePrecision: getDeviceInfo(ID, CL_DEVICE_DOUBLE_FP_CONFIG, errorHandler: errorHandler) ?? 0
+    halfPrecision: getDeviceInfo(ID, param: CL_DEVICE_HALF_FP_CONFIG, errorHandler: errorHandler) ?? 0,
+    singlePrecision: getDeviceInfo(ID, param: CL_DEVICE_SINGLE_FP_CONFIG, errorHandler: errorHandler) ?? 0,
+    doublePrecision: getDeviceInfo(ID, param: CL_DEVICE_DOUBLE_FP_CONFIG, errorHandler: errorHandler) ?? 0
   )
   
   let preferedWidth = Device.Width(
-    charVector: getDeviceInfo(ID, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
-    shortVector: getDeviceInfo(ID, CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT, errorHandler: errorHandler) ?? 0,
-    intVector: getDeviceInfo(ID, CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, errorHandler: errorHandler) ?? 0,
-    longVector: getDeviceInfo(ID, CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG, errorHandler: errorHandler) ?? 0,
-    floatVector: getDeviceInfo(ID, CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT, errorHandler: errorHandler) ?? 0,
-    doubleVector: getDeviceInfo(ID, CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE, errorHandler: errorHandler) ?? 0
+    charVector: getDeviceInfo(ID, param: CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
+    shortVector: getDeviceInfo(ID, param: CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT, errorHandler: errorHandler) ?? 0,
+    intVector: getDeviceInfo(ID, param: CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, errorHandler: errorHandler) ?? 0,
+    longVector: getDeviceInfo(ID, param: CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG, errorHandler: errorHandler) ?? 0,
+    floatVector: getDeviceInfo(ID, param: CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT, errorHandler: errorHandler) ?? 0,
+    doubleVector: getDeviceInfo(ID, param: CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE, errorHandler: errorHandler) ?? 0
   )
   
   let nativeWidth = Device.Width(
-    charVector: getDeviceInfo(ID, CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
-    shortVector: getDeviceInfo(ID, CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
-    intVector: getDeviceInfo(ID, CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
-    longVector: getDeviceInfo(ID, CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
-    floatVector: getDeviceInfo(ID, CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
-    doubleVector: getDeviceInfo(ID, CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0
+    charVector: getDeviceInfo(ID, param: CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
+    shortVector: getDeviceInfo(ID, param: CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
+    intVector: getDeviceInfo(ID, param: CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
+    longVector: getDeviceInfo(ID, param: CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
+    floatVector: getDeviceInfo(ID, param: CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0,
+    doubleVector: getDeviceInfo(ID, param: CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR, errorHandler: errorHandler) ?? 0
   )
   
-  let dimensions: cl_uint = getDeviceInfo(ID, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, errorHandler: errorHandler) ?? 0
+  let dimensions: cl_uint = getDeviceInfo(ID, param: CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, errorHandler: errorHandler) ?? 0
   
   let deviceMax = Device.Max(
     workItemSizes: getDeviceInfo(
       ID,
-      CL_DEVICE_MAX_WORK_ITEM_SIZES,
-      Int(dimensions),
+      param: CL_DEVICE_MAX_WORK_ITEM_SIZES,
+      count: Int(dimensions),
       errorHandler: errorHandler) ?? [size_t](),
     workItemDimensions: dimensions,
-    workGroupSize: getDeviceInfo(ID, CL_DEVICE_MAX_WORK_GROUP_SIZE, errorHandler: errorHandler) ?? 0,
-    samplers: getDeviceInfo(ID, CL_DEVICE_MAX_SAMPLERS, errorHandler: errorHandler) ?? 0,
-    readImageArgs: getDeviceInfo(ID, CL_DEVICE_MAX_READ_IMAGE_ARGS, errorHandler: errorHandler) ?? 0,
-    writeImageArgs: getDeviceInfo(ID, CL_DEVICE_MAX_WRITE_IMAGE_ARGS, errorHandler: errorHandler) ?? 0,
-    parameterSize: getDeviceInfo(ID, CL_DEVICE_MAX_PARAMETER_SIZE, errorHandler: errorHandler) ?? 0,
-    memAllocSize: getDeviceInfo(ID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, errorHandler: errorHandler) ?? 0,
-    constantBufferSize: getDeviceInfo(ID, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, errorHandler: errorHandler) ?? 0,
-    constantArgs: getDeviceInfo(ID, CL_DEVICE_MAX_CONSTANT_ARGS, errorHandler: errorHandler) ?? 0,
-    computeUnits: getDeviceInfo(ID, CL_DEVICE_MAX_COMPUTE_UNITS, errorHandler: errorHandler) ?? 0,
-    clockFrequency: getDeviceInfo(ID, CL_DEVICE_MAX_CLOCK_FREQUENCY, errorHandler: errorHandler) ?? 0
+    workGroupSize: getDeviceInfo(ID, param: CL_DEVICE_MAX_WORK_GROUP_SIZE, errorHandler: errorHandler) ?? 0,
+    samplers: getDeviceInfo(ID, param: CL_DEVICE_MAX_SAMPLERS, errorHandler: errorHandler) ?? 0,
+    readImageArgs: getDeviceInfo(ID, param: CL_DEVICE_MAX_READ_IMAGE_ARGS, errorHandler: errorHandler) ?? 0,
+    writeImageArgs: getDeviceInfo(ID, param: CL_DEVICE_MAX_WRITE_IMAGE_ARGS, errorHandler: errorHandler) ?? 0,
+    parameterSize: getDeviceInfo(ID, param: CL_DEVICE_MAX_PARAMETER_SIZE, errorHandler: errorHandler) ?? 0,
+    memAllocSize: getDeviceInfo(ID, param: CL_DEVICE_MAX_MEM_ALLOC_SIZE, errorHandler: errorHandler) ?? 0,
+    constantBufferSize: getDeviceInfo(ID, param: CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, errorHandler: errorHandler) ?? 0,
+    constantArgs: getDeviceInfo(ID, param: CL_DEVICE_MAX_CONSTANT_ARGS, errorHandler: errorHandler) ?? 0,
+    computeUnits: getDeviceInfo(ID, param: CL_DEVICE_MAX_COMPUTE_UNITS, errorHandler: errorHandler) ?? 0,
+    clockFrequency: getDeviceInfo(ID, param: CL_DEVICE_MAX_CLOCK_FREQUENCY, errorHandler: errorHandler) ?? 0
   )
   
   let globalMem = Device.GlobalMem(
-    size: getDeviceInfo(ID, CL_DEVICE_GLOBAL_MEM_SIZE, errorHandler: errorHandler) ?? 0,
-    cacheLineSize: getDeviceInfo(ID, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, errorHandler: errorHandler) ?? 0,
-    cacheType: getDeviceInfo(ID, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, errorHandler: errorHandler) ?? 0,
-    cacheSize: getDeviceInfo(ID, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, errorHandler: errorHandler) ?? 0
+    size: getDeviceInfo(ID, param: CL_DEVICE_GLOBAL_MEM_SIZE, errorHandler: errorHandler) ?? 0,
+    cacheLineSize: getDeviceInfo(ID, param: CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, errorHandler: errorHandler) ?? 0,
+    cacheType: getDeviceInfo(ID, param: CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, errorHandler: errorHandler) ?? 0,
+    cacheSize: getDeviceInfo(ID, param: CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, errorHandler: errorHandler) ?? 0
   )
   
   let localMem = Device.LocalMem(
-    type: getDeviceInfo(ID, CL_DEVICE_LOCAL_MEM_TYPE, errorHandler: errorHandler) ?? 0,
-    size: getDeviceInfo(ID, CL_DEVICE_LOCAL_MEM_SIZE, errorHandler: errorHandler) ?? 0
+    type: getDeviceInfo(ID, param: CL_DEVICE_LOCAL_MEM_TYPE, errorHandler: errorHandler) ?? 0,
+    size: getDeviceInfo(ID, param: CL_DEVICE_LOCAL_MEM_SIZE, errorHandler: errorHandler) ?? 0
   )
   
   let image = Device.Image(
-    image3DMaxWidth: getDeviceInfo(ID, CL_DEVICE_IMAGE3D_MAX_WIDTH, errorHandler: errorHandler) ?? 0,
-    image3DMaxHeight: getDeviceInfo(ID, CL_DEVICE_IMAGE3D_MAX_HEIGHT, errorHandler: errorHandler) ?? 0,
-    image3DMaxDepth: getDeviceInfo(ID, CL_DEVICE_IMAGE3D_MAX_DEPTH, errorHandler: errorHandler) ?? 0,
-    image2DMaxWidth: getDeviceInfo(ID, CL_DEVICE_IMAGE2D_MAX_WIDTH, errorHandler: errorHandler) ?? 0,
-    image2DMaxHeight: getDeviceInfo(ID, CL_DEVICE_IMAGE2D_MAX_HEIGHT, errorHandler: errorHandler) ?? 0,
-    maxBufferSize: getDeviceInfo(ID, CL_DEVICE_IMAGE_MAX_BUFFER_SIZE, errorHandler: errorHandler) ?? 0,
-    maxArraySize: getDeviceInfo(ID, CL_DEVICE_IMAGE_MAX_ARRAY_SIZE, errorHandler: errorHandler) ?? 0,
-    support: getDeviceInfo(ID, CL_DEVICE_IMAGE_SUPPORT, errorHandler: errorHandler) ?? 0
+    image3DMaxWidth: getDeviceInfo(ID, param: CL_DEVICE_IMAGE3D_MAX_WIDTH, errorHandler: errorHandler) ?? 0,
+    image3DMaxHeight: getDeviceInfo(ID, param: CL_DEVICE_IMAGE3D_MAX_HEIGHT, errorHandler: errorHandler) ?? 0,
+    image3DMaxDepth: getDeviceInfo(ID, param: CL_DEVICE_IMAGE3D_MAX_DEPTH, errorHandler: errorHandler) ?? 0,
+    image2DMaxWidth: getDeviceInfo(ID, param: CL_DEVICE_IMAGE2D_MAX_WIDTH, errorHandler: errorHandler) ?? 0,
+    image2DMaxHeight: getDeviceInfo(ID, param: CL_DEVICE_IMAGE2D_MAX_HEIGHT, errorHandler: errorHandler) ?? 0,
+    maxBufferSize: getDeviceInfo(ID, param: CL_DEVICE_IMAGE_MAX_BUFFER_SIZE, errorHandler: errorHandler) ?? 0,
+    maxArraySize: getDeviceInfo(ID, param: CL_DEVICE_IMAGE_MAX_ARRAY_SIZE, errorHandler: errorHandler) ?? 0,
+    support: getDeviceInfo(ID, param: CL_DEVICE_IMAGE_SUPPORT, errorHandler: errorHandler) ?? 0
   )
   
-  let platformID: cl_platform_id = getDeviceInfo(ID, CL_DEVICE_PLATFORM, errorHandler: errorHandler) ?? nil
+  let platformID: cl_platform_id = getDeviceInfo(ID, param: CL_DEVICE_PLATFORM, errorHandler: errorHandler) ?? nil
   
   let device = Device(
-    name: getDeviceInfo(ID, CL_DEVICE_NAME, errorHandler: errorHandler) ?? "",
+    name: getDeviceInfo(ID, param: CL_DEVICE_NAME, errorHandler: errorHandler) ?? "",
     vendor: vendor,
-    version: getDeviceInfo(ID, CL_DEVICE_VERSION, errorHandler: errorHandler) ?? "",
-    openCLCVersion: getDeviceInfo(ID, CL_DEVICE_OPENCL_C_VERSION, errorHandler: errorHandler) ?? "",
-    deviceProfile: getDeviceInfo(ID, CL_DEVICE_PROFILE, errorHandler: errorHandler) ?? "",
-    deviceType: getDeviceInfo(ID, CL_DEVICE_TYPE, errorHandler: errorHandler) ?? 0,
-    available: getDeviceInfo(ID, CL_DEVICE_AVAILABLE, errorHandler: errorHandler) ?? 0,
-    driverVersion: getDeviceInfo(ID, CL_DRIVER_VERSION, errorHandler: errorHandler) ?? "",
+    version: getDeviceInfo(ID, param: CL_DEVICE_VERSION, errorHandler: errorHandler) ?? "",
+    openCLCVersion: getDeviceInfo(ID, param: CL_DEVICE_OPENCL_C_VERSION, errorHandler: errorHandler) ?? "",
+    deviceProfile: getDeviceInfo(ID, param: CL_DEVICE_PROFILE, errorHandler: errorHandler) ?? "",
+    deviceType: getDeviceInfo(ID, param: CL_DEVICE_TYPE, errorHandler: errorHandler) ?? 0,
+    available: getDeviceInfo(ID, param: CL_DEVICE_AVAILABLE, errorHandler: errorHandler) ?? 0,
+    driverVersion: getDeviceInfo(ID, param: CL_DRIVER_VERSION, errorHandler: errorHandler) ?? "",
     platformID: platformID,
-    fpConfig: fpConfig,
-    queueProperties: getDeviceInfo(ID, CL_DEVICE_QUEUE_PROPERTIES, errorHandler: errorHandler) ?? 0,
-    profilingTimerResolution: getDeviceInfo(ID, CL_DEVICE_PROFILING_TIMER_RESOLUTION, errorHandler: errorHandler) ?? 0,
+    fpConfig:
+    fpConfig,
+    queueProperties: getDeviceInfo(ID, param: CL_DEVICE_QUEUE_PROPERTIES, errorHandler: errorHandler) ?? 0,
+    profilingTimerResolution: getDeviceInfo(ID, param: CL_DEVICE_PROFILING_TIMER_RESOLUTION, errorHandler: errorHandler) ?? 0,
     preferredWidth: preferedWidth,
     nativeWidth: nativeWidth,
-    minDataTypeAlignSize: getDeviceInfo(ID, CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE, errorHandler: errorHandler) ?? 0,
-    memBaseAddrAlign: getDeviceInfo(ID, CL_DEVICE_MEM_BASE_ADDR_ALIGN, errorHandler: errorHandler) ?? 0,
-    hostUnifiedMemory: getDeviceInfo(ID, CL_DEVICE_HOST_UNIFIED_MEMORY, errorHandler: errorHandler) ?? 0,
+    minDataTypeAlignSize: getDeviceInfo(ID, param: CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE, errorHandler: errorHandler) ?? 0,
+    memBaseAddrAlign: getDeviceInfo(ID, param: CL_DEVICE_MEM_BASE_ADDR_ALIGN, errorHandler: errorHandler) ?? 0,
+    hostUnifiedMemory: getDeviceInfo(ID, param: CL_DEVICE_HOST_UNIFIED_MEMORY, errorHandler: errorHandler) ?? 0,
     max: deviceMax,
     localMem: localMem,
     globalMem: globalMem,
     image: image,
-    executionCapabilities: getDeviceInfo(ID, CL_DEVICE_EXECUTION_CAPABILITIES, errorHandler: errorHandler) ?? 0,
-    errorCorrectionSupport: getDeviceInfo(ID, CL_DEVICE_ERROR_CORRECTION_SUPPORT, errorHandler: errorHandler) ?? 0,
-    endianLittle: getDeviceInfo(ID, CL_DEVICE_ENDIAN_LITTLE, errorHandler: errorHandler) ?? 0,
-    compilerAvailable: getDeviceInfo(ID, CL_DEVICE_COMPILER_AVAILABLE, errorHandler: errorHandler) ?? 0,
-    linkerAvailable: getDeviceInfo(ID, CL_DEVICE_LINKER_AVAILABLE, errorHandler: errorHandler) ?? 0,
-    addressBits: getDeviceInfo(ID, CL_DEVICE_ADDRESS_BITS, errorHandler: errorHandler) ?? 0,
-    buildInKernels: getDeviceInfo(ID, CL_DEVICE_BUILT_IN_KERNELS, errorHandler: errorHandler) ?? "",
-    printfBufferSize: getDeviceInfo(ID, CL_DEVICE_PRINTF_BUFFER_SIZE, errorHandler: errorHandler) ?? 0,
-    preferredInteropUserSync: getDeviceInfo(ID, CL_DEVICE_PREFERRED_INTEROP_USER_SYNC, errorHandler: errorHandler) ?? 0,
-    referenceCount: getDeviceInfo(ID, CL_DEVICE_REFERENCE_COUNT, errorHandler: errorHandler) ?? 0,
-    extensions: getDeviceInfo(ID, CL_DEVICE_EXTENSIONS, errorHandler: errorHandler) ?? ""
+    executionCapabilities: getDeviceInfo(ID, param: CL_DEVICE_EXECUTION_CAPABILITIES, errorHandler: errorHandler) ?? 0,
+    errorCorrectionSupport: getDeviceInfo(ID, param: CL_DEVICE_ERROR_CORRECTION_SUPPORT, errorHandler: errorHandler) ?? 0,
+    endianLittle: getDeviceInfo(ID, param: CL_DEVICE_ENDIAN_LITTLE, errorHandler: errorHandler) ?? 0,
+    compilerAvailable: getDeviceInfo(ID, param: CL_DEVICE_COMPILER_AVAILABLE, errorHandler: errorHandler) ?? 0,
+    linkerAvailable: getDeviceInfo(ID, param: CL_DEVICE_LINKER_AVAILABLE, errorHandler: errorHandler) ?? 0,
+    addressBits: getDeviceInfo(ID, param: CL_DEVICE_ADDRESS_BITS, errorHandler: errorHandler) ?? 0,
+    buildInKernels: getDeviceInfo(ID, param: CL_DEVICE_BUILT_IN_KERNELS, errorHandler: errorHandler) ?? "",
+    printfBufferSize: getDeviceInfo(ID, param: CL_DEVICE_PRINTF_BUFFER_SIZE, errorHandler: errorHandler) ?? 0,
+    preferredInteropUserSync: getDeviceInfo(ID, param: CL_DEVICE_PREFERRED_INTEROP_USER_SYNC, errorHandler: errorHandler) ?? 0,
+    referenceCount: getDeviceInfo(ID, param: CL_DEVICE_REFERENCE_COUNT, errorHandler: errorHandler) ?? 0,
+    extensions: getDeviceInfo(ID, param: CL_DEVICE_EXTENSIONS, errorHandler: errorHandler) ?? ""
   )
   
   return device
@@ -315,7 +317,7 @@ public func listDevices(
   deviceType:cl_device_type,
   errorHandler:((cl_device_id,Int32,cl_int)->Void)? = nil) -> [Device]? {
     
-    if let deviceIDs = listDeviceIDs(platformID, deviceType) {
+    if let deviceIDs = listDeviceIDs(platformID, deviceType: deviceType) {
       var devices = [Device]()
       
       for ID: cl_device_id in deviceIDs {

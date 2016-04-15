@@ -9,7 +9,7 @@
 import Foundation
 
 // Given sequence of 2-tuples, return two arrays
-func unzip<T, U>(sequence: SequenceOf<(T, U)>) -> ([T], [U]) {
+func unzip<T, U>(sequence: AnySequence<(T, U)>) -> ([T], [U]) {
   var t = Array<T>()
   var u = Array<U>()
   for (a, b) in sequence {
@@ -22,10 +22,10 @@ func unzip<T, U>(sequence: SequenceOf<(T, U)>) -> ([T], [U]) {
 /**
 Convert an array to a dictionary using tranformer.
 
-:param: array     Array to convert
-:param: transform Transformer function
+- parameter array:     Array to convert
+- parameter transform: Transformer function
 
-:returns: Dictionary representation of the array.
+- returns: Dictionary representation of the array.
 */
 public func toDictionary<K, V, E> (array:[E], transform:(E) -> (K, V)?) -> [K: V] {
   var dict = [K: V]()

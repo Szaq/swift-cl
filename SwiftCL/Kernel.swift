@@ -37,7 +37,7 @@ public class Kernel {
   }
   
   public func setArgs<A>(a:A, errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
-    if !setArg(0, a, errorHandler) {
+    if !setArg(0, a, errorHandler: errorHandler) {
       return nil
     }
     
@@ -45,11 +45,11 @@ public class Kernel {
   }
 
   public func setArgs<A, B>(a:A, _ b:B, errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
-    if !setArg(0, a, errorHandler) {
+    if !setArg(0, a, errorHandler: errorHandler) {
       return nil
     }
 
-    if !setArg(1, b, errorHandler) {
+    if !setArg(1, b, errorHandler: errorHandler) {
       return nil
     }
 
@@ -57,11 +57,11 @@ public class Kernel {
   }
   
   public func setArgs<A, B, C>(a:A, _ b:B, _ c:C, errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
-    if !setArg(cl_uint(0), a, errorHandler) {
+    if !setArg(cl_uint(0), a, errorHandler: errorHandler) {
       return nil
     }
     
-    if !setArg(cl_uint(1), b, errorHandler) {
+    if !setArg(cl_uint(1), b, errorHandler: errorHandler) {
       return nil
     }
     
@@ -73,11 +73,11 @@ public class Kernel {
   }
   
   public func setArgs<A, B, C, D>(a:A, _ b:B, _ c:C, _ d:D, errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
-    if !setArg(cl_uint(0), a, errorHandler) {
+    if !setArg(cl_uint(0), a, errorHandler: errorHandler) {
       return nil
     }
     
-    if !setArg(cl_uint(1), b, errorHandler) {
+    if !setArg(cl_uint(1), b, errorHandler: errorHandler) {
       return nil
     }
     
@@ -94,11 +94,11 @@ public class Kernel {
   
   public func setArgs<A, B, C, D, E>(a:A, _ b:B, _ c:C, _ d:D, _ e:E,
     errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
-      if !setArg(cl_uint(0), a, errorHandler) {
+      if !setArg(cl_uint(0), a, errorHandler: errorHandler) {
         return nil
       }
       
-      if !setArg(cl_uint(1), b, errorHandler) {
+      if !setArg(cl_uint(1), b, errorHandler: errorHandler) {
         return nil
       }
       
@@ -119,11 +119,11 @@ public class Kernel {
   
   public func setArgs<A, B, C, D, E, F>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F,
     errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
-      if !setArg(cl_uint(0), a, errorHandler) {
+      if !setArg(cl_uint(0), a, errorHandler: errorHandler) {
         return nil
       }
       
-      if !setArg(cl_uint(1), b, errorHandler) {
+      if !setArg(cl_uint(1), b, errorHandler: errorHandler) {
         return nil
       }
       
@@ -148,11 +148,11 @@ public class Kernel {
 
   public func setArgs<A, B, C, D, E, F, G>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F, _ g:G,
     errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
-      if !setArg(cl_uint(0), a, errorHandler) {
+      if !setArg(cl_uint(0), a, errorHandler: errorHandler) {
         return nil
       }
       
-      if !setArg(cl_uint(1), b, errorHandler) {
+      if !setArg(cl_uint(1), b, errorHandler: errorHandler) {
         return nil
       }
       
@@ -181,11 +181,11 @@ public class Kernel {
   
   public func setArgs<A, B, C, D, E, F, G, H>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F, _ g:G, _ h:H,
     errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
-      if !setArg(cl_uint(0), a, errorHandler) {
+      if !setArg(cl_uint(0), a, errorHandler: errorHandler) {
         return nil
       }
       
-      if !setArg(cl_uint(1), b, errorHandler) {
+      if !setArg(cl_uint(1), b, errorHandler: errorHandler) {
         return nil
       }
       
@@ -218,11 +218,11 @@ public class Kernel {
   
   public func setArgs<A, B, C, D, E, F, G, H, I>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F, _ g:G, _ h:H, i: I,
     errorHandler:((cl_int) -> Void)? = nil) -> Prepared? {
-    if !setArg(cl_uint(0), a, errorHandler) {
+    if !setArg(cl_uint(0), a, errorHandler: errorHandler) {
       return nil
     }
     
-    if !setArg(cl_uint(1), b, errorHandler) {
+    if !setArg(cl_uint(1), b, errorHandler: errorHandler) {
       return nil
     }
     
@@ -260,7 +260,7 @@ public class Kernel {
   
   private func setArg<T>(idx: cl_uint, _ arg:T, errorHandler:((cl_int) -> Void)? = nil) -> Bool {
     if let arg = arg as? Memory {
-      return setArg(idx, arg, errorHandler)
+      return setArg(idx, arg, errorHandler: errorHandler)
     }
     var argCopy = arg
     let result = clSetKernelArg(id, idx, size_t(sizeof(T)), &argCopy)

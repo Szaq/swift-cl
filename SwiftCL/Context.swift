@@ -21,29 +21,29 @@ public class Context {
       var props = [COpaquePointer]()
       
       func appendPointer(key:Int32, value:COpaquePointer) {
-        props.append(COpaquePointer(bitPattern: Word(key)))
+        props.append(COpaquePointer(bitPattern: Int(key)))
         props.append(value)
       }
       
-      func append(key:Int32, value:Word) {
-        props.append(COpaquePointer(bitPattern: Word(key)))
+      func append(key:Int32, value:Int) {
+        props.append(COpaquePointer(bitPattern: Int(key)))
         props.append(COpaquePointer(bitPattern: value))
       }
       
       if let platformID = platformID {
-        appendPointer(CL_CONTEXT_PLATFORM, platformID)
+        appendPointer(CL_CONTEXT_PLATFORM, value: platformID)
         
       }
       
       if let interopUserSync = interopUserSync {
-        append(CL_CONTEXT_INTEROP_USER_SYNC, Word(interopUserSync))
+        append(CL_CONTEXT_INTEROP_USER_SYNC, value: Int(interopUserSync))
       }
       
       if let additionalProperties = additionalProperties {
-        for i in stride(from: 0, to: additionalProperties.count, by: 2) {
+        for i in 0.stride(to: additionalProperties.count, by: 2) {
           let key = additionalProperties[i]
           let value = additionalProperties[i + 1]
-          append(Int32(key), value)
+          append(Int32(key), value: value)
         }
       }
       
@@ -86,11 +86,11 @@ public class Context {
   /**
   Create Context
   
-  :param: deviceType   Type of device to use: CL_DEVICE_TYPE_xxx
-  :param: properties   Optional properties:
-  :param: errorHandler Optional error handler
+  - parameter deviceType:   Type of device to use: CL_DEVICE_TYPE_xxx
+  - parameter properties:   Optional properties:
+  - parameter errorHandler: Optional error handler
   
-  :returns: Created Context
+  - returns: Created Context
   */
   public init?(fromType deviceType:Int32, properties: Properties? = nil, errorHandler: ((cl_int) -> Void)? = nil) {
     var error: cl_int = 0
@@ -116,7 +116,7 @@ public class Context {
   
   public func getInfo<T: IntegerLiteralConvertible>(param: Int32, errorHandler: ((Int32, cl_int) -> Void)? = nil) -> T? {
     var value: T = 0
-    let result = clGetContextInfo(id, cl_context_info(param), UInt(sizeof(T)), &value, nil)
+    let result = clGetContextInfo(id, cl_context_info(param), sizeof(T), &value, nil)
     if  result != CL_SUCCESS {
       if let handler = errorHandler {
         handler(param, result)
@@ -129,7 +129,7 @@ public class Context {
   
   public func getInfo<T>(param: Int32, defValue:T, errorHandler: ((Int32, cl_int) -> Void)? = nil) -> [T]? {
     var arraySize: size_t = 0
-    let result = clGetContextInfo(id, cl_context_info(param), UInt(sizeof(T)), nil, &arraySize)
+    let result = clGetContextInfo(id, cl_context_info(param), sizeof(T), nil, &arraySize)
     if  result != CL_SUCCESS {
       if let handler = errorHandler {
         handler(param, result)
@@ -138,7 +138,7 @@ public class Context {
     }
 
     var array = [T](count: Int(arraySize) / sizeof(T), repeatedValue:defValue)
-    let result2 = clGetContextInfo(id, cl_context_info(param), UInt(arraySize), &array, nil)
+    let result2 = clGetContextInfo(id, cl_context_info(param), arraySize, &array, nil)
     if  result2 != CL_SUCCESS {
       if let handler = errorHandler {
         handler(param, result2)
@@ -152,10 +152,8 @@ public class Context {
   public func getInfo(param: Int32, errorHandler: ((Int32, cl_int) -> Void)? = nil) -> [cl_context_properties: Int]? {
     var result = [cl_context_properties: Int]()
 
-    var array: [cl_context_properties]? = getInfo(param, defValue: cl_context_properties(0), errorHandler)
-    
-    if let array = array {
-      for i in stride(from: 0, to: array.count, by: 2) {
+    if let array = getInfo(param, defValue: cl_context_properties(0), errorHandler: errorHandler) as [cl_context_properties]? {
+      for i in 0.stride(to: array.count, by: 2) {
         let key = array[i]
         if key != 0 {
           let value = array[i + 1]

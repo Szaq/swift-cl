@@ -13,7 +13,7 @@ public class Buffer<T : IntegerLiteralConvertible>: Memory {
   public private(set) var objects: [T]
   
   public init?(context:Context, count:Int, readOnly: Bool = false, errorHandler: ((cl_int) -> Void)? = nil) {
-    var flags = readOnly ? CL_MEM_READ_ONLY : CL_MEM_READ_WRITE
+    let flags = readOnly ? CL_MEM_READ_ONLY : CL_MEM_READ_WRITE
     
     objects = [T](count:count, repeatedValue:0)
     super.init(context: context,

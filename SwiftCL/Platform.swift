@@ -10,7 +10,7 @@ import Foundation
 import OpenCL
 
 ///OpenCL Platform
-public struct Platform : Printable{
+public struct Platform : CustomStringConvertible{
   public let id: cl_platform_id
   public let profile: String
   public let version: String
@@ -42,8 +42,8 @@ public func getPlatformInfo(
   param: Int32,
   errorHandler: ((cl_platform_id, Int32, cl_int) -> Void)? = nil) -> String? {
     
-    var length: UInt = 0
-    let result = clGetPlatformInfo(platformID, cl_platform_info(param), UInt(sizeof(UInt)), nil, &length)
+    var length: Int = 0
+    let result = clGetPlatformInfo(platformID, cl_platform_info(param), sizeof(Int), nil, &length)
     if result != CL_SUCCESS {
       if let handler = errorHandler {
         handler(platformID, param, result)
@@ -60,7 +60,7 @@ public func getPlatformInfo(
       return nil
     }
     
-    return NSString(UTF8String: value)
+    return NSString(UTF8String: value) as? String
 }
 
 
@@ -70,11 +70,11 @@ public func listPlatforms() -> [Platform]? {
     for ID in platformIDs {
       platforms.append(Platform(
         id:ID,
-        profile: getPlatformInfo(ID, CL_PLATFORM_PROFILE) ?? "",
-        version: getPlatformInfo(ID, CL_PLATFORM_VERSION) ?? "",
-        name: getPlatformInfo(ID, CL_PLATFORM_NAME) ?? "",
-        vendor: getPlatformInfo(ID, CL_PLATFORM_VENDOR) ?? "",
-        extensions: getPlatformInfo(ID, CL_PLATFORM_EXTENSIONS) ?? ""
+        profile: getPlatformInfo(ID, param: CL_PLATFORM_PROFILE) ?? "",
+        version: getPlatformInfo(ID, param: CL_PLATFORM_VERSION) ?? "",
+        name: getPlatformInfo(ID, param: CL_PLATFORM_NAME) ?? "",
+        vendor: getPlatformInfo(ID, param: CL_PLATFORM_VENDOR) ?? "",
+        extensions: getPlatformInfo(ID, param: CL_PLATFORM_EXTENSIONS) ?? ""
         ))
     }
     return platforms

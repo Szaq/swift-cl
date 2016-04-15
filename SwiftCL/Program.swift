@@ -27,7 +27,7 @@ public class Program {
     let binaryType: cl_program_binary_type
   }
   
-  public let id: cl_program
+  private (set) var id: cl_program
   
   public init(id: cl_program) {
     self.id = id
@@ -58,13 +58,13 @@ public class Program {
     }
     
     if compilationType != .None {
-      if !self.compile(devices: nil, headers: nil, errorHandler) {
+        if !self.compile(errorHandler: errorHandler) {
         return nil
       }
     }
     
     if compilationType == .CompileAndLink {
-      if let newID = linkPrograms(context, [self], options:nil, devices: nil, errorHandler:errorHandler) {
+      if let newID = linkPrograms(context, programs: [self], options:nil, devices: nil, errorHandler:errorHandler) {
         id = newID.id
       }
       else {
@@ -80,17 +80,17 @@ public class Program {
     errorHandler: ((cl_int, String) -> Void)? = nil
     ) {
       
-      if let source = String(contentsOfFile: path) {
-        self.init(context:context, sources:[source], compilationType:compilationType, errorHandler:errorHandler)
+    do {
+      let source = try String(contentsOfFile: path)
+      self.init(context:context, sources:[source], compilationType:compilationType, errorHandler:errorHandler)
+    } catch _ {
+      if let handler = errorHandler {
+        handler(-1, "Failed to read file \(path)")
       }
-      else {
-        if let handler = errorHandler {
-          handler(-1, "Failed to read file \(path)")
-        }
 
-        self.init(id: nil)
-        return nil
-      }
+      self.init(id: nil)
+      return nil
+    }
   }
 
   convenience public init?(
@@ -100,12 +100,13 @@ public class Program {
     compilationType: CompilationType = .CompileAndLink,
     errorHandler: ((cl_int, String) -> Void)? = nil
     ) {
-      if let path = bundle.pathForResource(fileName.stringByDeletingPathExtension, ofType: fileName.pathExtension) {
-        if let source = String(contentsOfFile: path) {
+        let nsFileName = fileName as NSString
+      if let path = bundle.pathForResource(nsFileName.stringByDeletingPathExtension, ofType: nsFileName.pathExtension) {
+        do {
+          let source = try String(contentsOfFile: path)
           self.init(context:context, sources:[source], compilationType:compilationType, errorHandler:errorHandler)
           return
-        }
-        else {
+        } catch _ {
           if let handler = errorHandler {
             handler(-1, "Failed to read file \(path)")
           }
@@ -134,7 +135,7 @@ public class Program {
   
   public init?(context:Context, programs:[Program], options: String? = nil, devices:[cl_device_id]? = nil, errorHandler:((cl_int, String) -> Void)? = nil) {
     
-    if let newID = linkPrograms(context, programs, options:nil, devices: nil, errorHandler:errorHandler) {
+    if let newID = linkPrograms(context, programs: programs, options:nil, devices: nil, errorHandler:errorHandler) {
       id = newID.id
     }
     else {
@@ -149,18 +150,18 @@ public class Program {
     
     let options = Array((options ?? "").nulTerminatedUTF8).map {unsafeBitCast($0, Int8.self)}
     
-    let headersNames = headers?.keys.array
+    let headersNames = headers.map {Array($0.keys)}
     let headersPrograms = headersNames?.map {headers![$0]!.id}
     let headersNamesUTF = headersNames?.map { (name:String) -> UnsafePointer<Int8> in
       let utf8String = Array(name.nulTerminatedUTF8)
-      var pointer = UnsafeMutablePointer<UInt8>.alloc(utf8String.count)
+      let pointer = UnsafeMutablePointer<UInt8>.alloc(utf8String.count)
       pointer.initializeFrom(utf8String)
       return UnsafePointer<Int8>(pointer)
     }
     
 
     
-    let result = withResolvedPointers(devices, headersNamesUTF, headersPrograms) { (devicesPtr, headersNamesPtr, headersProgramsPtr) -> cl_int in
+    let result = withResolvedPointers(devices, b: headersNamesUTF, c: headersPrograms) { (devicesPtr, headersNamesPtr, headersProgramsPtr) -> cl_int in
       
       let haveHeaders = (headersProgramsPtr != nil)
       
@@ -225,7 +226,7 @@ public class Program {
       return nil
     }
     
-    return NSString(UTF8String: value)
+    return NSString(UTF8String: value) as? String
 
   }
   
@@ -285,12 +286,12 @@ public class Program {
       return nil
     }
     
-    return NSString(UTF8String: value)
+    return NSString(UTF8String: value) as? String
   }
   
   public func getInfo<T>(param: Int32, defValue:T, errorHandler: ((Int32, cl_int) -> Void)? = nil) -> [T]? {
     var arraySize: size_t = 0
-    let result = clGetProgramInfo(id, cl_program_info(param), UInt(sizeof(T)), nil, &arraySize)
+    let result = clGetProgramInfo(id, cl_program_info(param), sizeof(T), nil, &arraySize)
     if  result != CL_SUCCESS {
       if let handler = errorHandler {
         handler(param, result)
@@ -299,7 +300,7 @@ public class Program {
     }
     
     var array = [T](count: Int(arraySize) / sizeof(T), repeatedValue:defValue)
-    let result2 = clGetProgramInfo(id, cl_context_info(param), UInt(arraySize), &array, nil)
+    let result2 = clGetProgramInfo(id, cl_context_info(param), arraySize, &array, nil)
     if  result2 != CL_SUCCESS {
       if let handler = errorHandler {
         handler(param, result2)

@@ -30,7 +30,7 @@ public class Memory {
       self.size = size
       var result: cl_int = 0
       let ptr: UnsafeMutablePointer<Void> = ((flags & CL_MEM_USE_HOST_PTR) != 0) ? data : nil
-      self.id = clCreateBuffer(context.id, cl_mem_flags(flags), size, ptr, &result)
+      self.id = clCreateBuffer(context.id, cl_mem_flags(flags), Int(size), ptr, &result)
       
       if result != CL_SUCCESS {
         if let handler = errorHandler {

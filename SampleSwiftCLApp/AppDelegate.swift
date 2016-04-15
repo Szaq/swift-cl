@@ -17,9 +17,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   func applicationDidFinishLaunching(aNotification: NSNotification) {
     // Insert code here to initialize your application
     if let simulation = Simulation() {
-      for i in 0..<10 {
+      for _ in 0..<10 {
         let values = simulation.step()
-        println("Values = \(values)")
+        print("Values = \(values)")
       }
     }
     

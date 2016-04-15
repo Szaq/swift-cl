@@ -30,13 +30,13 @@ public class CommandQueue {
   /**
   Create Command Queue
   
-  :param: context    Valid OpenCL context
-  :param: device     Device associated with this context. If not specified then random device from this context will
+  - parameter context:    Valid OpenCL context
+  - parameter device:     Device associated with this context. If not specified then random device from this context will
                      be selected.
-  :param: properties Optional properties (CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, CL_QUEUE_PROFILING_ENABLE).
-  :param: errorHanndler Optional handler that will be called if eny error occurs.
+  - parameter properties: Optional properties (CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, CL_QUEUE_PROFILING_ENABLE).
+  - parameter errorHanndler: Optional handler that will be called if eny error occurs.
   
-  :returns: Created Command Queue or nil if f
+  - returns: Created Command Queue or nil if f
   */
   public init?(context: Context, device:cl_device_id? = nil, properties: cl_command_queue_properties = 0,
     errorHandler:((cl_int) -> Void)? = nil) {
@@ -93,7 +93,7 @@ public class CommandQueue {
       
       
       
-      let result = withResolvedPointers(globalWorkOffset, localWorkSize, eventWaitListIDs) {(globalWorkOffsetPtr, localWorkSizePtr, eventWaitListIDsPtr) -> cl_int in
+      let result = withResolvedPointers(globalWorkOffset, b: localWorkSize, c: eventWaitListIDs) {(globalWorkOffsetPtr, localWorkSizePtr, eventWaitListIDsPtr) -> cl_int in
         clEnqueueNDRangeKernel(self.id, kernel.id,
           cl_uint(globalWorkSize.count),
           globalWorkOffsetPtr,
@@ -113,7 +113,7 @@ public class CommandQueue {
   
   public func enqueueRead(buffer:Memory, range: Range<size_t>? = nil, eventWaitList:[Event]? = nil, event: Event? = nil) -> cl_int {
     let offset = range?.startIndex ?? 0
-    let size = range.map {UInt(count($0))} ?? buffer.size
+    let size = range.map {$0.count} ?? Int(buffer.size)
     let blocking = cl_bool((event == nil) ? CL_TRUE : CL_FALSE)
     let eventWaitListIDs = eventWaitList?.filter{$0.id != nil}.map{$0.id!}
     var kernelEvent: cl_event = nil

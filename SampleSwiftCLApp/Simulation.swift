@@ -12,46 +12,32 @@ import SwiftCL
 
 class Simulation {
   
-  let queue: CommandQueue!
-  let kernel: Kernel!
-  let bufferA: Buffer<Float>!
-  let bufferB: Buffer<Float>!
+  let queue: CommandQueue
+  let kernel: Kernel
+  let bufferA: Buffer<Float>
+  let bufferB: Buffer<Float>
   
   init?() {
-    if let context = Context(fromType: CL_DEVICE_TYPE_GPU) {
+    
+      guard let context = Context(fromType: CL_DEVICE_TYPE_GPU),
+        queue = CommandQueue(context: context),
+        program = Program(context: context, loadFromMainBundle: "Simulation.cl"),
+        kernel = Kernel(program: program, name: "simulationStep"),
+        bufferA = Buffer<Float>(context: context, copyFrom: [0.0, 0.0, 1.0, 1.0], readOnly: true),
+        bufferB = Buffer<Float>(context: context, copyFrom: [4, 5, 6, 7])
+        else {return nil}
       
-      if let queue = CommandQueue(context: context) {
-        self.queue = queue
-        
-        if let program = Program(context: context, loadFromMainBundle: "Simulation.cl") {
-          
-          if let kernel = Kernel(program: program, name: "simulationStep") {
-            self.kernel = kernel
-          }
-          
-          if let buffer = Buffer<Float>(context: context, copyFrom: [0.0, 0.0, 1.0, 1.0], readOnly: true) {
-            bufferA = buffer
-          }
-          
-          if let buffer = Buffer<Float>(context: context, copyFrom: [4, 5, 6, 7]) {
-            bufferB = buffer
-          }
-          
-          if (kernel == nil || bufferA == nil || bufferB == nil) {
-            return nil
-          }
-        }
+      self.queue = queue
+      self.kernel = kernel
+      self.bufferA = bufferA
+      self.bufferB = bufferB
+    }
+    
+    func step() -> [Float] {
+      if let preparedKernel = kernel.setArgs(bufferA, bufferB, bufferB) {
+        queue.enqueue(preparedKernel, globalWorkSize: [4])
+        queue.enqueueRead(bufferB)
       }
-    }
-    return nil
+      return bufferB.objects
   }
-  
-  func step() -> [Float] {
-    if let preparedKernel = kernel.setArgs(bufferA, bufferB, bufferB) {
-      queue.enqueue(preparedKernel, globalWorkSize: [4])
-      queue.enqueueRead(bufferB)
-    }
-    return bufferB.objects
-  }
-  
 }

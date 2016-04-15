@@ -319,6 +319,8 @@
 		206CBB601A31976C0077D16A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0700;
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0610;
 				ORGANIZATIONNAME = "Spinal Development";
 				TargetAttributes = {
@@ -698,6 +700,7 @@
 				206CBB811A31976C0077D16A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		206CBB821A31976C0077D16A /* Build configuration list for PBXNativeTarget "SwiftCLTests" */ = {
 			isa = XCConfigurationList;
@@ -706,6 +709,7 @@
 				206CBB841A31976C0077D16A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		206CBBB41A3198D00077D16A /* Build configuration list for PBXNativeTarget "SampleSwiftCLApp" */ = {
 			isa = XCConfigurationList;
@@ -714,6 +718,7 @@
 				206CBBB61A3198D00077D16A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		206CBBB71A3198D00077D16A /* Build configuration list for PBXNativeTarget "SampleSwiftCLAppTests" */ = {
 			isa = XCConfigurationList;
@@ -722,6 +727,7 @@
 				206CBBB91A3198D00077D16A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
