@@ -21,7 +21,7 @@ class Simulation {
     
       guard let context = Context(fromType: CL_DEVICE_TYPE_GPU),
         queue = CommandQueue(context: context),
-        program = Program(context: context, loadFromMainBundle: "Simulation.cl"),
+        program = try? Program(context: context, loadFromMainBundle: "Simulation.cl"),
         kernel = Kernel(program: program, name: "simulationStep"),
         bufferA = Buffer<Float>(context: context, copyFrom: [0.0, 0.0, 1.0, 1.0], readOnly: true),
         bufferB = Buffer<Float>(context: context, copyFrom: [4, 5, 6, 7])

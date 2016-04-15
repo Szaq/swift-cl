@@ -33,13 +33,12 @@ public class Program {
     self.id = id
   }
   
-  public init?(
+  public init(
     context: Context,
     sources:[String],
-    compilationType: CompilationType = .CompileAndLink,
-    errorHandler: ((cl_int, String) -> Void)? = nil
-    ) {
-    var result: cl_int = 0
+    compilationType: CompilationType = .CompileAndLink) throws {
+    
+    var status: cl_int = 0
     
     var sourceStrings = [UnsafePointer<Int8>]()
     var sourceLengths = [size_t]()
@@ -49,104 +48,53 @@ public class Program {
       sourceLengths.append(size_t(source.length))
     }
     
-    id = clCreateProgramWithSource(context.id, cl_uint(sources.count), &sourceStrings, &sourceLengths, &result)
-    if result != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(result, "Failed to create Program")
-      }
-      return nil
-    }
+    id = clCreateProgramWithSource(context.id, cl_uint(sources.count), &sourceStrings, &sourceLengths, &status)
+    try CLError.check(status)
     
     if compilationType != .None {
-        if !self.compile(errorHandler: errorHandler) {
-        return nil
-      }
+        try compile()
     }
     
     if compilationType == .CompileAndLink {
-      if let newID = linkPrograms(context, programs: [self], options:nil, devices: nil, errorHandler:errorHandler) {
-        id = newID.id
-      }
-      else {
-        return nil
-      }
+      id = try linkPrograms(context, programs: [self], options:nil, devices: nil).id
     }
   }
   
   convenience public init?(
     context: Context,
     path: String,
-    compilationType: CompilationType = .CompileAndLink,
-    errorHandler: ((cl_int, String) -> Void)? = nil
-    ) {
-      
-    do {
-      let source = try String(contentsOfFile: path)
-      self.init(context:context, sources:[source], compilationType:compilationType, errorHandler:errorHandler)
-    } catch _ {
-      if let handler = errorHandler {
-        handler(-1, "Failed to read file \(path)")
-      }
-
-      self.init(id: nil)
-      return nil
-    }
+    compilationType: CompilationType = .CompileAndLink) throws {
+    
+    let source = try String(contentsOfFile: path)
+    try self.init(context:context, sources:[source], compilationType:compilationType)
   }
 
-  convenience public init?(
+  convenience public init(
     context: Context,
     loadFromResource fileName: String,
     inBundle bundle: NSBundle,
-    compilationType: CompilationType = .CompileAndLink,
-    errorHandler: ((cl_int, String) -> Void)? = nil
-    ) {
+    compilationType: CompilationType = .CompileAndLink) throws {
         let nsFileName = fileName as NSString
-      if let path = bundle.pathForResource(nsFileName.stringByDeletingPathExtension, ofType: nsFileName.pathExtension) {
-        do {
-          let source = try String(contentsOfFile: path)
-          self.init(context:context, sources:[source], compilationType:compilationType, errorHandler:errorHandler)
-          return
-        } catch _ {
-          if let handler = errorHandler {
-            handler(-1, "Failed to read file \(path)")
-          }
-        }
-      }
-      else {
-        if let handler = errorHandler {
-          handler(-1, "Failed to find file \(fileName)")
-        }
-      }
-      self.init(id: nil)
-      return nil
+        guard let path = bundle.pathForResource(nsFileName.stringByDeletingPathExtension, ofType: nsFileName.pathExtension)
+          else {throw CLError.FileNotFound}
+    let source = try String(contentsOfFile: path)
+    try self.init(context:context, sources:[source], compilationType:compilationType)
   }
   
   
-  convenience public init?(
-    context: Context,
-    loadFromMainBundle fileName: String,
-    compilationType: CompilationType = .CompileAndLink,
-    errorHandler: ((cl_int, String) -> Void)? = nil
-    ) {
-      self.init(context: context, loadFromResource:fileName, inBundle: NSBundle.mainBundle(), compilationType: compilationType, errorHandler: errorHandler)
+  convenience public init(context: Context,
+                          loadFromMainBundle fileName: String,
+                          compilationType: CompilationType = .CompileAndLink) throws {
+    try self.init(context: context, loadFromResource:fileName, inBundle: NSBundle.mainBundle(), compilationType: compilationType)
   }
-
-
   
-  public init?(context:Context, programs:[Program], options: String? = nil, devices:[cl_device_id]? = nil, errorHandler:((cl_int, String) -> Void)? = nil) {
+  
+  
+  public init(context:Context, programs:[Program], options: String? = nil, devices:[cl_device_id]? = nil) throws {
+    id = try linkPrograms(context, programs: programs, options:nil, devices: nil).id
+  }
     
-    if let newID = linkPrograms(context, programs: programs, options:nil, devices: nil, errorHandler:errorHandler) {
-      id = newID.id
-    }
-    else {
-      id = nil
-      return nil
-    }
-  }
-  
-  
-    
-  public func compile(devices:[cl_device_id]? = nil, options: String? = nil, headers:[String:Program]? = nil, errorHandler:((cl_int, String) -> Void)? = nil) -> Bool {
+  public func compile(devices:[cl_device_id]? = nil, options: String? = nil, headers:[String:Program]? = nil) throws {
     
     let options = Array((options ?? "").nulTerminatedUTF8).map {unsafeBitCast($0, Int8.self)}
     
@@ -161,7 +109,7 @@ public class Program {
     
 
     
-    let result = withResolvedPointers(devices, b: headersNamesUTF, c: headersPrograms) { (devicesPtr, headersNamesPtr, headersProgramsPtr) -> cl_int in
+    let status = withResolvedPointers(devices, b: headersNamesUTF, c: headersPrograms) { (devicesPtr, headersNamesPtr, headersProgramsPtr) -> cl_int in
       
       let haveHeaders = (headersProgramsPtr != nil)
       
@@ -175,173 +123,100 @@ public class Program {
         nil, nil)
     }
     
-    if result != CL_SUCCESS {
-      if let handler = errorHandler {
-        if let devices: [cl_device_id] = getInfo(CL_PROGRAM_DEVICES, defValue:nil, errorHandler: { handler($1, "Get devices error.") }) {
-          if devices.count > 0 {
-            let log: String? = getBuildInfo(CL_PROGRAM_BUILD_LOG, device: devices[0])
-            handler(result, log ?? "")
-            return false
-          }
-        }
-        
-        handler(result, "")
+    guard status == CL_SUCCESS else {
+      let devices:[cl_device_id]? = try? getInfo(CL_PROGRAM_DEVICES, defValue:nil)
+      let buildInfo: BuildInfo? = devices?.first.flatMap { return try? self.getBuildInfo($0)}
+      throw CLError.BuildError(reason: CLError.fromInt(status), buildInfo: buildInfo)
       }
-      return false
-    }
-    
-    return true
   }
   
-  public func getBuildInfo<T:IntegerLiteralConvertible>(param:Int32, device:cl_device_id, errorHandler:((Int32, cl_device_id, cl_int) -> Void)? = nil) -> T? {
-    var t:T = 0
-    let result = clGetProgramBuildInfo(id, device, cl_program_build_info(param), size_t(sizeof(T)), &t, nil)
+  public func getBuildInfo<T:IntegerLiteralConvertible>(param:Int32, device:cl_device_id) throws -> T {
+    var info:T = 0
+    try CLError.check(clGetProgramBuildInfo(id, device, cl_program_build_info(param), size_t(sizeof(T)), &info, nil))
     
-    if result != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, device, result)
-      }
-      return nil
-    }
-    
-    return t
+    return info
   }
   
-  public func getBuildInfo(param:Int32, device:cl_device_id, errorHandler:((Int32, cl_device_id, cl_int) -> Void)? = nil) -> String? {
+  public func getBuildInfo(param:Int32, device:cl_device_id) throws -> String {
     var length: size_t = 0
-    let result = clGetProgramBuildInfo(id, device, cl_program_build_info(param), 0, nil, &length)
-    if result != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, device, result)
-      }
-      return nil
-    }
+    try CLError.check(clGetProgramBuildInfo(id, device, cl_program_build_info(param), 0, nil, &length))
     
-    var value = [Int8](count:Int(length), repeatedValue:0)
-    let result2 = clGetProgramBuildInfo(id, device, cl_program_build_info(param), length, &value, &length)
-    if  result2 != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, device, result2)
-      }
-      return nil
-    }
+    var value = [CChar](count:Int(length), repeatedValue:0)
+    try CLError.check(clGetProgramBuildInfo(id, device, cl_program_build_info(param), length, &value, &length))
     
-    return NSString(UTF8String: value) as? String
-
+    guard let infoString = String(UTF8String: value) else {throw CLError.UTF8ConversionError}
+    return infoString
   }
   
-  public func getBuildInfo(device:cl_device_id, errorHandler:((Int32, cl_device_id, cl_int) -> Void)? = nil) -> BuildInfo {
+  public func getBuildInfo(device:cl_device_id) throws -> BuildInfo {
     return BuildInfo(
-       buildStatus: getBuildInfo(CL_PROGRAM_BUILD_STATUS, device: device, errorHandler:errorHandler) ?? 0,
-      options: getBuildInfo(CL_PROGRAM_BUILD_OPTIONS, device: device, errorHandler:errorHandler) ?? "",
-      buildLog: getBuildInfo(CL_PROGRAM_BUILD_LOG, device: device, errorHandler:errorHandler) ?? "",
-      binaryType: getBuildInfo(CL_PROGRAM_BINARY_TYPE, device: device, errorHandler:errorHandler) ?? 0
+       buildStatus: try getBuildInfo(CL_PROGRAM_BUILD_STATUS, device: device),
+      options: try getBuildInfo(CL_PROGRAM_BUILD_OPTIONS, device: device),
+      buildLog: try getBuildInfo(CL_PROGRAM_BUILD_LOG, device: device),
+      binaryType: try getBuildInfo(CL_PROGRAM_BINARY_TYPE, device: device)
     )
   }
   
-  
-  
-  public func getInfo<T:IntegerLiteralConvertible>(param:Int32, errorHandler:((Int32, cl_int) -> Void)? = nil) -> T? {
-    var t:T = 0
-    let result = clGetProgramInfo(id, cl_program_build_info(param), size_t(sizeof(T)), &t, nil)
+  public func getInfo<T:IntegerLiteralConvertible>(param:Int32) throws -> T {
+    var info:T = 0
+    try CLError.check(clGetProgramInfo(id, cl_program_build_info(param), size_t(sizeof(T)), &info, nil))
     
-    if result != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, result)
-      }
-      return nil
-    }
-    return t
+    return info
   }
   
-  public func getInfo<T:NilLiteralConvertible>(param:Int32, errorHandler:((Int32, cl_int) -> Void)? = nil) -> T? {
-    var t:T = nil
-    let result = clGetProgramInfo(id, cl_program_build_info(param), size_t(sizeof(T)), &t, nil)
+  public func getInfo<T:NilLiteralConvertible>(param:Int32) throws -> T {
+    var info:T = nil
+    try CLError.check(clGetProgramInfo(id, cl_program_build_info(param), size_t(sizeof(T)), &info, nil))
     
-    if result != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, result)
-      }
-      return nil
-    }
-    return t
+    return info
   }
   
-  public func getInfo(param:Int32, errorHandler:((Int32, cl_int) -> Void)? = nil) -> String? {
+  public func getInfo(param:Int32) throws -> String {
     var length: size_t = 0
-    let result = clGetProgramInfo(id, cl_program_info(param), 0, nil, &length)
-    if result != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, result)
-      }
-      return nil
-    }
+    try CLError.check(clGetProgramInfo(id, cl_program_info(param), 0, nil, &length))
     
-    var value = [Int8](count:Int(length), repeatedValue:0)
-    let result2 = clGetProgramInfo(id, cl_program_info(param), length, &value, &length)
-    if  result2 != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, result2)
-      }
-      return nil
-    }
+    var value = [CChar](count:Int(length), repeatedValue:0)
+    try CLError.check(clGetProgramInfo(id, cl_program_info(param), length, &value, &length))
     
-    return NSString(UTF8String: value) as? String
+    guard let infoString = String(UTF8String: value) else {throw CLError.UTF8ConversionError}
+    return infoString
   }
   
-  public func getInfo<T>(param: Int32, defValue:T, errorHandler: ((Int32, cl_int) -> Void)? = nil) -> [T]? {
+  public func getInfo<T>(param: Int32, defValue:T) throws -> [T] {
     var arraySize: size_t = 0
-    let result = clGetProgramInfo(id, cl_program_info(param), sizeof(T), nil, &arraySize)
-    if  result != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, result)
-      }
-      return nil
-    }
+    try CLError.check(clGetProgramInfo(id, cl_program_info(param), sizeof(T), nil, &arraySize))
     
     var array = [T](count: Int(arraySize) / sizeof(T), repeatedValue:defValue)
-    let result2 = clGetProgramInfo(id, cl_context_info(param), arraySize, &array, nil)
-    if  result2 != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, result2)
-      }
-      return nil
-    }
+    try CLError.check(clGetProgramInfo(id, cl_context_info(param), arraySize, &array, nil))
     
     return array
   }
 
   
-  public func getKernelNames(errorHandler:((Int32, cl_int) -> Void)? = nil) -> [String] {
-    if let names: String = getInfo(CL_PROGRAM_KERNEL_NAMES, errorHandler:errorHandler) {
-      return names.componentsSeparatedByString(";")
-    }
-    else {
-      return [String]()
-    }
+  public func getKernelNames() throws -> [String] {
+    let names: String = try getInfo(CL_PROGRAM_KERNEL_NAMES)
+    return names.componentsSeparatedByString(";")
   }
 }
 
-public func linkPrograms(context:Context, programs:[Program], options: String? = nil, devices:[cl_device_id]? = nil, errorHandler:((cl_int, String) -> Void)? = nil) -> Program? {
+public func linkPrograms(context:Context, programs:[Program], options: String? = nil, devices:[cl_device_id]? = nil) throws -> Program {
   let programIDs = programs.map {$0.id}
   let options = Array((options ?? "").nulTerminatedUTF8).map{unsafeBitCast($0, Int8.self)}
   
   let contextDevices = context.getInfo().deviceIDs
   
-  var result: cl_int = 0
+  var status: cl_int = 0
   var newID: cl_program
   if let devices = devices {
-    newID = clLinkProgram(context.id, cl_uint(devices.count), devices, options, cl_uint(programIDs.count), programIDs, nil, nil, &result)
+    newID = clLinkProgram(context.id, cl_uint(devices.count), devices, options, cl_uint(programIDs.count), programIDs, nil, nil, &status)
+  } else {
+    newID = clLinkProgram(context.id, 0, nil, options, cl_uint(programIDs.count), programIDs, nil, nil, &status)
   }
-  else {
-    newID = clLinkProgram(context.id, 0, nil, options, cl_uint(programIDs.count), programIDs, nil, nil, &result)
+  
+  guard status == CL_SUCCESS else {
+    let buildInfo = try? Program(id: newID).getBuildInfo(contextDevices[0])
+    throw CLError.BuildError(reason: CLError.fromInt(status), buildInfo: buildInfo)
   }
-  if result != CL_SUCCESS {
-    let buildInfo = Program(id: newID).getBuildInfo(contextDevices[0])
-    if let handler = errorHandler {
-      handler(result, buildInfo.buildLog)
-    }
-    return nil
-  }
+  
   return Program(id:newID)
 }

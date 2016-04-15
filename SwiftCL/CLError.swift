@@ -71,17 +71,20 @@ import OpenCL
  #define CL_INVALID_DEVICE_PARTITION_COUNT           -68
 
  */
-enum CLError: cl_int, ErrorType {
+indirect enum CLError: ErrorType {
   ///Generic error indicating invalid value. Consult OpenCL documentation for particular function call
-  case InvalidValue = -30
+  case InvalidValue
   ///there is a failure to allocate resources required by the OpenCL implementation on the host
-  case OutOfHostMemory = -6
+  case OutOfHostMemory
   ///platform is not a valid platform
-  case InvalidPlatform = -32
+  case InvalidPlatform
+  ///Couldn't find specified file
+  case BuildError(reason: CLError, buildInfo: Program.BuildInfo?)
+  case FileNotFound
   ///There was a problem converting UTF8 raw data
-  case UTF8ConversionError = 0xffffe
+  case UTF8ConversionError
   ///Generic error not found above
-  case GenericError = 0xfffff
+  case GenericError(rawValue: cl_int)
 }
 
 extension CLError {
@@ -93,7 +96,13 @@ extension CLError {
    - returns: Appropriate CLError
    */
   static func fromInt(rawValue: cl_int) -> CLError {
-    return CLError(rawValue: rawValue) ?? .GenericError
+    switch rawValue {
+    case CL_INVALID_VALUE: return .InvalidValue
+    case CL_OUT_OF_HOST_MEMORY: return .OutOfHostMemory
+    case CL_INVALID_PLATFORM: return .InvalidPlatform
+    case CL_OUT_OF_HOST_MEMORY: return .InvalidValue
+    default: return .GenericError(rawValue: rawValue)
+    }
   }
   
   /**
