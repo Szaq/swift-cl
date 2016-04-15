@@ -27,6 +27,7 @@
 		206CBBBB1A319A3A0077D16A /* Simulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206CBBBA1A319A3A0077D16A /* Simulation.swift */; };
 		206CBBC01A319C210077D16A /* Simulation.cl in Sources */ = {isa = PBXBuildFile; fileRef = 206CBBBF1A319C210077D16A /* Simulation.cl */; };
 		206CBBC11A319C470077D16A /* Simulation.cl in Resources */ = {isa = PBXBuildFile; fileRef = 206CBBBF1A319C210077D16A /* Simulation.cl */; };
+		39B90D231CC0F21E00B7E7AD /* CLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39B90D221CC0F21E00B7E7AD /* CLError.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -80,6 +81,7 @@
 		206CBBB21A3198D00077D16A /* SampleSwiftCLAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleSwiftCLAppTests.swift; sourceTree = "<group>"; };
 		206CBBBA1A319A3A0077D16A /* Simulation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Simulation.swift; sourceTree = "<group>"; };
 		206CBBBF1A319C210077D16A /* Simulation.cl */ = {isa = PBXFileReference; explicitFileType = sourcecode.c; fileEncoding = 4; path = Simulation.cl; sourceTree = "<group>"; };
+		39B90D221CC0F21E00B7E7AD /* CLError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CLError.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,6 +154,7 @@
 				206CBB8D1A31980B0077D16A /* Event.swift */,
 				206CBB6E1A31976C0077D16A /* SwiftCL.h */,
 				206CBB6C1A31976C0077D16A /* Supporting Files */,
+				39B90D221CC0F21E00B7E7AD /* CLError.swift */,
 			);
 			path = SwiftCL;
 			sourceTree = "<group>";
@@ -399,6 +402,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				39B90D231CC0F21E00B7E7AD /* CLError.swift in Sources */,
 				206CBB951A31980B0077D16A /* Memory.swift in Sources */,
 				206CBB961A31980B0077D16A /* Event.swift in Sources */,
 				206CBB921A31980B0077D16A /* Platform.swift in Sources */,
