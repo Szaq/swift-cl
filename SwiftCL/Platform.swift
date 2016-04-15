@@ -52,68 +52,71 @@ public struct Platform : CustomStringConvertible {
     + "\nVendor: \(vendor)\nVersion: \(version)\nProfile: \(profile)\nExtensions: \(extensions)"}
 }
 
-/**
- Obtain the list of identifiers of available platforms.
- 
- - throws: CLError
- 
- - returns: List of platform identifiers
- 
-  - seealso: https://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clGetPlatformIDs.html
- */
-public func listPlatformIDs() throws -> [cl_platform_id] {
-  var count: cl_uint = 0
-  try CLError.check(clGetPlatformIDs(0, nil, &count))
-  
-  var platformIDs = [cl_platform_id](count:Int(count), repeatedValue:nil)
-  try CLError.check(clGetPlatformIDs(count, &platformIDs, &count))
-  
-  return platformIDs
-}
 
-/**
- Get specific information about the OpenCL platform.
- 
- - parameter platformID: Platform identifier
- - parameter param:      An enumeration constant that identifies the platform information being queried. For possible values check the khronos link.
- 
- - throws: CLError
- 
- - returns: Value for requested param
- 
- - seealso: https://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clGetPlatformInfo.html
- */
-public func getPlatformInfo(platformID: cl_platform_id, param: Int32) throws -> String {
+extension Platform {
+  /**
+   Obtain the list of identifiers of available platforms.
+   
+   - throws: CLError
+   
+   - returns: List of platform identifiers
+   
+   - seealso: https://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clGetPlatformIDs.html
+   */
+  public static func listIDs() throws -> [cl_platform_id] {
+    var count: cl_uint = 0
+    try CLError.check(clGetPlatformIDs(0, nil, &count))
+    
+    var platformIDs = [cl_platform_id](count:Int(count), repeatedValue:nil)
+    try CLError.check(clGetPlatformIDs(count, &platformIDs, &count))
+    
+    return platformIDs
+  }
   
-  var length: Int = 0
-  try CLError.check(clGetPlatformInfo(platformID, cl_platform_info(param), sizeof(Int), nil, &length))
+  /**
+   Get specific information about the OpenCL platform.
+   
+   - parameter platformID: Platform identifier
+   - parameter param:      An enumeration constant that identifies the platform information being queried. For possible values check the khronos link.
+   
+   - throws: CLError
+   
+   - returns: Value for requested param
+   
+   - seealso: https://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clGetPlatformInfo.html
+   */
+  public static func getInfo(platformID: cl_platform_id, param: Int32) throws -> String {
+    
+    var length: Int = 0
+    try CLError.check(clGetPlatformInfo(platformID, cl_platform_info(param), sizeof(Int), nil, &length))
+    
+    var value = [CChar](count:Int(length), repeatedValue:0)
+    try CLError.check(clGetPlatformInfo(platformID, cl_platform_info(param), length, &value, &length))
+    
+    guard let infoString = String(UTF8String:value) else {throw CLError.UTF8ConversionError }
+    return infoString
+  }
   
-  var value = [CChar](count:Int(length), repeatedValue:0)
-  try CLError.check(clGetPlatformInfo(platformID, cl_platform_info(param), length, &value, &length))
+  /**
+   Obtain the list of platforms available.
+   
+   - throws: CLError
+   
+   - returns: List of platforms
+   
+   - seealso: https://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clGetPlatformIDs.html
+   */
   
-  guard let infoString = String(UTF8String:value) else {throw CLError.UTF8ConversionError }
-  return infoString
-}
-
-/**
- Obtain the list of platforms available.
- 
- - throws: CLError
- 
- - returns: List of platforms
- 
- - seealso: https://www.khronos.org/registry/cl/sdk/1.2/docs/man/xhtml/clGetPlatformIDs.html
- */
-
-public func listPlatforms() throws -> [Platform] {
-  return try listPlatformIDs().map {ID in
+  public static func list() throws -> [Platform] {
+    return try listIDs().map {ID in
       Platform(
         id:ID,
-        profile: try getPlatformInfo(ID, param: CL_PLATFORM_PROFILE) ,
-        version: try getPlatformInfo(ID, param: CL_PLATFORM_VERSION),
-        name: try getPlatformInfo(ID, param: CL_PLATFORM_NAME),
-        vendor: try getPlatformInfo(ID, param: CL_PLATFORM_VENDOR),
-        extensions: try getPlatformInfo(ID, param: CL_PLATFORM_EXTENSIONS)
-        )
+        profile: try getInfo(ID, param: CL_PLATFORM_PROFILE) ,
+        version: try getInfo(ID, param: CL_PLATFORM_VERSION),
+        name: try getInfo(ID, param: CL_PLATFORM_NAME),
+        vendor: try getInfo(ID, param: CL_PLATFORM_VENDOR),
+        extensions: try getInfo(ID, param: CL_PLATFORM_EXTENSIONS)
+      )
     }
+  }
 }
