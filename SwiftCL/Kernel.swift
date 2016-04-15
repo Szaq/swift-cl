@@ -34,99 +34,99 @@ public class Kernel {
   
   public func setArgs<A, B, C, D, E, F, G, H, I>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F, _ g:G, _ h:H, i: I) throws -> Prepared {
     
-    try setArg(cl_uint(0), a)
-    try setArg(cl_uint(1), b)
-    try setArg(cl_uint(2), c)
-    try setArg(cl_uint(3), d)
-    try setArg(cl_uint(4), e)
-    try setArg(cl_uint(5), f)
-    try setArg(cl_uint(6), g)
-    try setArg(cl_uint(7), h)
-    try setArg(cl_uint(8), i)
+    try setArg(0, a)
+    try setArg(1, b)
+    try setArg(2, c)
+    try setArg(3, d)
+    try setArg(4, e)
+    try setArg(5, f)
+    try setArg(6, g)
+    try setArg(7, h)
+    try setArg(8, i)
     
     return Prepared(id:id)
   }
   
   public func setArgs<A, B, C, D, E, F, G, H>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F, _ g:G, _ h:H) throws -> Prepared {
     
-    try setArg(cl_uint(0), a)
-    try setArg(cl_uint(1), b)
-    try setArg(cl_uint(2), c)
-    try setArg(cl_uint(3), d)
-    try setArg(cl_uint(4), e)
-    try setArg(cl_uint(5), f)
-    try setArg(cl_uint(6), g)
-    try setArg(cl_uint(7), h)
+    try setArg(0, a)
+    try setArg(1, b)
+    try setArg(2, c)
+    try setArg(3, d)
+    try setArg(4, e)
+    try setArg(5, f)
+    try setArg(6, g)
+    try setArg(7, h)
     
     return Prepared(id:id)
   }
   
   public func setArgs<A, B, C, D, E, F, G>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F, _ g:G) throws -> Prepared {
     
-    try setArg(cl_uint(0), a)
-    try setArg(cl_uint(1), b)
-    try setArg(cl_uint(2), c)
-    try setArg(cl_uint(3), d)
-    try setArg(cl_uint(4), e)
-    try setArg(cl_uint(5), f)
-    try setArg(cl_uint(6), g)
+    try setArg(0, a)
+    try setArg(1, b)
+    try setArg(2, c)
+    try setArg(3, d)
+    try setArg(4, e)
+    try setArg(5, f)
+    try setArg(6, g)
     
     return Prepared(id:id)
   }
   
   public func setArgs<A, B, C, D, E, F>(a:A, _ b:B, _ c:C, _ d:D, _ e:E, _ f:F) throws -> Prepared {
     
-    try setArg(cl_uint(0), a)
-    try setArg(cl_uint(1), b)
-    try setArg(cl_uint(2), c)
-    try setArg(cl_uint(3), d)
-    try setArg(cl_uint(4), e)
-    try setArg(cl_uint(5), f)
+    try setArg(0, a)
+    try setArg(1, b)
+    try setArg(2, c)
+    try setArg(3, d)
+    try setArg(4, e)
+    try setArg(5, f)
     
     return Prepared(id:id)
   }
   
   public func setArgs<A, B, C, D, E>(a:A, _ b:B, _ c:C, _ d:D, _ e:E) throws -> Prepared {
     
-    try setArg(cl_uint(0), a)
-    try setArg(cl_uint(1), b)
-    try setArg(cl_uint(2), c)
-    try setArg(cl_uint(3), d)
-    try setArg(cl_uint(4), e)
+    try setArg(0, a)
+    try setArg(1, b)
+    try setArg(2, c)
+    try setArg(3, d)
+    try setArg(4, e)
     
     return Prepared(id:id)
   }
   
   public func setArgs<A, B, C, D>(a:A, _ b:B, _ c:C, _ d:D) throws -> Prepared {
     
-    try setArg(cl_uint(0), a)
-    try setArg(cl_uint(1), b)
-    try setArg(cl_uint(2), c)
-    try setArg(cl_uint(3), d)
+    try setArg(0, a)
+    try setArg(1, b)
+    try setArg(2, c)
+    try setArg(3, d)
     
     return Prepared(id:id)
   }
   
   public func setArgs<A, B, C>(a:A, _ b:B, _ c:C) throws -> Prepared {
     
-    try setArg(cl_uint(0), a)
-    try setArg(cl_uint(1), b)
-    try setArg(cl_uint(2), c)
+    try setArg(0, a)
+    try setArg(1, b)
+    try setArg(2, c)
     
     return Prepared(id:id)
   }
   
   public func setArgs<A, B>(a:A, _ b:B) throws -> Prepared {
     
-    try setArg(cl_uint(0), a)
-    try setArg(cl_uint(1), b)
+    try setArg(0, a)
+    try setArg(1, b)
     
     return Prepared(id:id)
   }
   
   public func setArgs<A>(a:A) throws -> Prepared {
     
-    try setArg(cl_uint(0), a)
+    try setArg(0, a)
     
     return Prepared(id:id)
   }
