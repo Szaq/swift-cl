@@ -15,12 +15,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 
   func applicationDidFinishLaunching(aNotification: NSNotification) {
-    // Insert code here to initialize your application
-    if let simulation = Simulation() {
+    do {
+      
+      let simulation = try Simulation()
       for _ in 0..<10 {
         let values = simulation.step()
         print("Values = \(values)")
       }
+      
+    } catch let error {
+      print("Error: \(error)")
     }
     
   }

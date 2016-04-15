@@ -38,45 +38,14 @@ public class CommandQueue {
   
   - returns: Created Command Queue or nil if f
   */
-  public init?(context: Context, device:cl_device_id? = nil, properties: cl_command_queue_properties = 0,
-    errorHandler:((cl_int) -> Void)? = nil) {
-
-      var deviceFromContext: cl_device_id? = nil
-      
-      if device == nil {
-        if let devices: [cl_device_id] = context.getInfo(CL_CONTEXT_DEVICES,
-          defValue: nil,
-          errorHandler: { (param: Int32, error: cl_int) -> Void in
-            if let handler = errorHandler {
-              handler(error)
-            }
-        }) {
-          if devices.count > 0 {
-            deviceFromContext = devices[0]
-          }
-          else {
-            id = COpaquePointer(bitPattern: 0)
-            return nil
-          }
-        }
-      }
-      
-      if (device != nil) && (deviceFromContext != nil) {
-        if let handler = errorHandler {
-          handler(NoDeviceError)
-        }
-        id = COpaquePointer(bitPattern: 0)
-        return nil
-      }
-      
-      var result: cl_int = 0
-      id = clCreateCommandQueue(context.id, device ?? deviceFromContext!, properties, &result)
-      if result != CL_SUCCESS {
-        if let handler = errorHandler {
-          handler(result)
-        }
-        return nil
-      }
+  public init(context: Context, device:cl_device_id? = nil, properties: cl_command_queue_properties = 0) throws {
+    
+    guard let selectedDevice: cl_device_id = try device ?? context.getInfo(CL_CONTEXT_DEVICES, defValue: nil).first
+      else {throw CLError.DeviceNotFound}
+    
+      var status: cl_int = 0
+      id = clCreateCommandQueue(context.id, selectedDevice, properties, &status)
+      try CLError.check(status)
   }
   
   public func enqueue(

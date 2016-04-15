@@ -17,20 +17,15 @@ class Simulation {
   let bufferA: Buffer<Float>
   let bufferB: Buffer<Float>
   
-  init?() {
+  init() throws {
     
-      guard let context = Context(fromType: CL_DEVICE_TYPE_GPU),
-        queue = CommandQueue(context: context),
-        program = try? Program(context: context, loadFromMainBundle: "Simulation.cl"),
-        kernel = try? Kernel(program: program, name: "simulationStep"),
-        bufferA = Buffer<Float>(context: context, copyFrom: [0.0, 0.0, 1.0, 1.0], readOnly: true),
-        bufferB = Buffer<Float>(context: context, copyFrom: [4, 5, 6, 7])
-        else {return nil}
-      
-      self.queue = queue
-      self.kernel = kernel
-      self.bufferA = bufferA
-      self.bufferB = bufferB
+    let context = try Context(fromType: CL_DEVICE_TYPE_GPU)
+    
+    queue = try CommandQueue(context: context)
+    let program = try Program(context: context, loadFromMainBundle: "Simulation.cl")
+    kernel = try Kernel(program: program, name: "simulationStep")
+    bufferA = try Buffer<Float>(context: context, copyFrom: [0.0, 0.0, 1.0, 1.0], readOnly: true)
+    bufferB = try Buffer<Float>(context: context, copyFrom: [4, 5, 6, 7])
     }
     
     func step() -> [Float] {

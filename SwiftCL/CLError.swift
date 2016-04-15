@@ -84,6 +84,8 @@ indirect enum CLError: ErrorType {
   case KernelArgumentNotMemory
   ///Couldn't find specified file
   case FileNotFound
+  ///Did specify device and no devices in context were found
+  case DeviceNotFound
   ///There was a problem converting UTF8 raw data
   case UTF8ConversionError
   ///Generic error not found above

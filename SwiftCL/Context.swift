@@ -65,22 +65,18 @@ public class Context {
     self.id = id
   }
   
-  public init?(deviceIDs: [cl_device_id], properties: Properties? = nil, errorHandler: ((cl_int) -> Void)? = nil) {
-    var error: cl_int = 0
+  public init(deviceIDs: [cl_device_id], properties: Properties? = nil) throws {
+    
+    var status: cl_int = 0
+    
     if let properties = properties {
       let properties = properties.toCL()
-      id = clCreateContext(UnsafePointer<cl_context_properties>(properties), cl_uint(deviceIDs.count), deviceIDs, nil, nil, &error)
-    }
-    else {
-      id = clCreateContext(nil, cl_uint(deviceIDs.count), deviceIDs, nil, nil, &error)
+      id = clCreateContext(UnsafePointer<cl_context_properties>(properties), cl_uint(deviceIDs.count), deviceIDs, nil, nil, &status)
+    } else {
+      id = clCreateContext(nil, cl_uint(deviceIDs.count), deviceIDs, nil, nil, &status)
     }
     
-    if (error != CL_SUCCESS) {
-      if let handler = errorHandler {
-        handler(error)
-      }
-      return nil
-    }
+    try CLError.check(status)
   }
   
   /**
@@ -88,71 +84,49 @@ public class Context {
   
   - parameter deviceType:   Type of device to use: CL_DEVICE_TYPE_xxx
   - parameter properties:   Optional properties:
-  - parameter errorHandler: Optional error handler
   
   - returns: Created Context
   */
-  public init?(fromType deviceType:Int32, properties: Properties? = nil, errorHandler: ((cl_int) -> Void)? = nil) {
-    var error: cl_int = 0
+  public init(fromType deviceType:Int32, properties: Properties? = nil) throws {
+    
+    var status: cl_int = 0
+    
     if let properties = properties {
-      let properties = properties.toCL()
-      id = clCreateContextFromType(UnsafePointer<cl_context_properties>(properties), cl_device_type(deviceType), nil, nil, &error)
+      let propertiesPtr = properties.toCL()
+      id = clCreateContextFromType(UnsafePointer<cl_context_properties>(propertiesPtr), cl_device_type(deviceType), nil, nil, &status)
     }
     else {
-      id = clCreateContextFromType(nil, cl_device_type(deviceType), nil, nil, &error)
+      id = clCreateContextFromType(nil, cl_device_type(deviceType), nil, nil, &status)
     }
     
-    if (error != CL_SUCCESS) {
-      if let handler = errorHandler {
-        handler(error)
-      }
-      return nil
-    }
+    try CLError.check(status)
   }
   
   deinit {
     clReleaseContext(self.id)
   }
   
-  public func getInfo<T: IntegerLiteralConvertible>(param: Int32, errorHandler: ((Int32, cl_int) -> Void)? = nil) -> T? {
+  public func getInfo<T: IntegerLiteralConvertible>(param: Int32) throws -> T {
+    
     var value: T = 0
-    let result = clGetContextInfo(id, cl_context_info(param), sizeof(T), &value, nil)
-    if  result != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, result)
-      }
-      return nil
-    }
+    try CLError.check(clGetContextInfo(id, cl_context_info(param), sizeof(T), &value, nil))
     
     return value
   }
   
-  public func getInfo<T>(param: Int32, defValue:T, errorHandler: ((Int32, cl_int) -> Void)? = nil) -> [T]? {
+  public func getInfo<T>(param: Int32, defValue:T) throws -> [T] {
     var arraySize: size_t = 0
-    let result = clGetContextInfo(id, cl_context_info(param), sizeof(T), nil, &arraySize)
-    if  result != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, result)
-      }
-      return nil
-    }
-
+    try CLError.check(clGetContextInfo(id, cl_context_info(param), sizeof(T), nil, &arraySize))
+    
     var array = [T](count: Int(arraySize) / sizeof(T), repeatedValue:defValue)
-    let result2 = clGetContextInfo(id, cl_context_info(param), arraySize, &array, nil)
-    if  result2 != CL_SUCCESS {
-      if let handler = errorHandler {
-        handler(param, result2)
-      }
-      return nil
-    }
-
+    try CLError.check(clGetContextInfo(id, cl_context_info(param), arraySize, &array, nil))
     return array
   }
   
-  public func getInfo(param: Int32, errorHandler: ((Int32, cl_int) -> Void)? = nil) -> [cl_context_properties: Int]? {
+  public func getInfo(param: Int32) throws -> [cl_context_properties: Int] {
     var result = [cl_context_properties: Int]()
 
-    if let array = getInfo(param, defValue: cl_context_properties(0), errorHandler: errorHandler) as [cl_context_properties]? {
+    if let array = try getInfo(param, defValue: cl_context_properties(0)) as [cl_context_properties]? {
       for i in 0.stride(to: array.count, by: 2) {
         let key = array[i]
         if key != 0 {
@@ -166,13 +140,13 @@ public class Context {
   }
 
   
-  public func getInfo(errorHandler: ((Int32, cl_int) -> Void)? = nil) -> Info {
+  public func getInfo() throws -> Info {
     
     return Info(
-      referenceCount: getInfo(CL_CONTEXT_REFERENCE_COUNT, errorHandler: errorHandler) ?? 0,
-      numDevices: getInfo(CL_CONTEXT_NUM_DEVICES, errorHandler: errorHandler) ?? 0,
-      deviceIDs: getInfo(CL_CONTEXT_DEVICES, defValue: nil, errorHandler: errorHandler) ?? [cl_device_id](),
-      properties: getInfo(CL_CONTEXT_PROPERTIES, errorHandler: errorHandler) ?? [cl_context_properties: Int]()
+      referenceCount: try getInfo(CL_CONTEXT_REFERENCE_COUNT),
+      numDevices: try getInfo(CL_CONTEXT_NUM_DEVICES),
+      deviceIDs: try getInfo(CL_CONTEXT_DEVICES, defValue: nil),
+      properties: try getInfo(CL_CONTEXT_PROPERTIES)
     )
   }
   

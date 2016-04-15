@@ -203,7 +203,7 @@ public func linkPrograms(context:Context, programs:[Program], options: String? =
   let programIDs = programs.map {$0.id}
   let options = Array((options ?? "").nulTerminatedUTF8).map{unsafeBitCast($0, Int8.self)}
   
-  let contextDevices = context.getInfo().deviceIDs
+  let contextDevices = try context.getInfo().deviceIDs
   
   var status: cl_int = 0
   var newID: cl_program
