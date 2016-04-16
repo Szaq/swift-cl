@@ -24,4 +24,12 @@ class SwiftCLTests: XCTestCase {
     let context = try Context(fromType: CL_DEVICE_TYPE_CPU)
     XCTAssertGreaterThan(try context.getInfo().numDevices, 0)
   }
+  
+  func testGetInfo() throws {
+    let context = try Context(fromType: CL_DEVICE_TYPE_CPU)
+    let info = try context.getInfo()
+    XCTAssertGreaterThan(info.numDevices, 0)
+    XCTAssertEqual(info.deviceIDs.count, Int(info.numDevices))
+    XCTAssertEqual(info.properties.count, 0)
+  }
 }
