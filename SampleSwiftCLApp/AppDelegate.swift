@@ -19,8 +19,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       
       let simulation = try Simulation()
       for _ in 0..<10 {
-        let values = simulation.step()
-        print("Values = \(values)")
+        do {
+          print("Values = \(try simulation.step())")
+        } catch let error {
+          print("There was an error running simulation step: \(error)")
+        }
+        
       }
       
     } catch let error {

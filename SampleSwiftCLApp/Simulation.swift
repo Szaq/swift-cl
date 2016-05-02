@@ -28,11 +28,11 @@ class Simulation {
     bufferB = try Buffer<Float>(context: context, copyFrom: [4, 5, 6, 7])
     }
     
-    func step() -> [Float] {
-      if let preparedKernel = try? kernel.setArgs(bufferA, bufferB, bufferB) {
-        queue.enqueue(preparedKernel, globalWorkSize: [4])
-        queue.enqueueRead(bufferB)
-      }
-      return bufferB.objects
+  func step() throws -> [Float] {
+    let preparedKernel = try kernel.setArgs(bufferA, bufferB, bufferB)
+    try queue.enqueue(preparedKernel, globalWorkSize: [4])
+    try queue.enqueueRead(bufferB)
+    
+    return bufferB.objects
   }
 }
