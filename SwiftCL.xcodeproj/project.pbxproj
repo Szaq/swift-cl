@@ -128,7 +128,9 @@
 				206CBBAF1A3198D00077D16A /* SampleSwiftCLAppTests */,
 				206CBB6A1A31976C0077D16A /* Products */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
+			tabWidth = 2;
 		};
 		206CBB6A1A31976C0077D16A /* Products */ = {
 			isa = PBXGroup;
